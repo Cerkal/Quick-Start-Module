@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+from datetime import datetime
+import fileinput
+import re
+import os
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def eprint(error):
+	print(bcolors.FAIL + error + bcolors.ENDC)
+    
+
+date = datetime.now().strftime("%b %d %Y")
+
+print()
+print('--------------------------------------')
+print('--------- Module Creator -------------')
+print('--------------------------------------')
+print()
+
+while True:
+	vendor = input("Vendor (cammelCase): ")
+	if (vendor):
+		vendor = vendor[0].capitalize() + vendor[1::]
+		break
+
+print()
+while True:
+	module = input("Module (cammelCase): ")
+	if (module):
+		module = module[0].capitalize() + module[1::]
+		break
+
+print()
+while True:
+	path = input("Magento path: ")
+	if (path and os.path.exists(path) and os.path.exists(path+"/app/etc/env.php")):
+		if (path[-1] != '/'):
+			path += "/"
+		break
+	else:
+		eprint("Not a valid magento path!\n")
+
+print()
+while True:
+	description = input("Description: ")
+	if (description):
+		description = description.capitalize()
+		break
+
+print()
+while True:
+	author = input("Author: ")
+	if (author):
+		author_arr = author.split(" ")
+		if len(author_arr) > 0:
+			for n, author_piece in enumerate(author_arr):
+				author_arr[n] = author_arr[n].title()
+		author = ' '.join(author_arr)
+		break
+
+def snakeCaseIt(name):
+
+	nameArr = re.findall('[A-Z][^A-Z]*', name)
+	if len(nameArr) > 0:
+		name = '_'.join(nameArr)
+	return name.lower()
+
+
+vendor_lower = snakeCaseIt(vendor)
+module_lower = snakeCaseIt(module)
+
+print(vendor_lower + "_" + module_lower + " by: " + author + " on " + date)
+
+files = {
+	'composer.json': 'app/code/'+vendor+"/"+module+"/",
+	'README.md': 'app/code/'+vendor+"/"+module+"/",
+	'module.xml': 'app/code/'+vendor+"/"+module+'/etc/',
+	'registration.php': 'app/code/'+vendor+"/"+module+"/",
+}
+
+replace = {
+	'vendor': vendor,
+	'vendor_lower': vendor_lower,
+	'module': module,
+	'module_lower': module_lower,
+	'date': date,
+	'author': author,
+	'description': description
+}
+
+
+for file in files:
+
+	if not os.path.exists(path + files[file]):
+		os.makedirs(path + files[file])
+		
+	template = './templates/'+file
+	new_file = path + files[file] + file
+
+	with open(template) as f:
+		file_contents = f.read()
+		for r in replace:
+			find = "{{"+r+"}}"
+			file_contents = file_contents.replace(find, replace[r])
+
+	with open(new_file, "w") as f:
+		f.write(file_contents)
