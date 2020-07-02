@@ -2,7 +2,7 @@
   "name": "{{vendor_lower}}/{{module_lower}}",
   "description": "{{description}}",
   "require": {
-    "php": "~7.1.3||~7.2.0",
+    "php": "~7.1.3||~7.2.0"
   },
   "type": "magento2-module",
   "license": [
